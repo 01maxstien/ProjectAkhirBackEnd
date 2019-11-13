@@ -16,12 +16,13 @@ module.exports = {
                         .update(password)
                         .digest('hex');
     
-        var sql = `SELECT id,username,email,status 
+        var sql = `SELECT *
                     FROM users 
                     WHERE email = ${sqlDB.escape(email)}
                     AND password = ${sqlDB.escape(password)};`;
         
         sqlDB.query(sql, (err, results) => {
+            console.log(email,password,results)
             if(err) return res.status(500).send({ err, message: 'Database Error' })
     
             if(results.length === 0) {
@@ -35,6 +36,7 @@ module.exports = {
     },
     register: (req,res) => {
         req.body.status = 'Unverified'
+        req.body.role='user'
         req.body.tanggalBergabung = new Date()
     
         req.body.password = crypto.createHmac('sha256', secret)
@@ -54,7 +56,7 @@ module.exports = {
                 if(err) return res.status(500).send({ message:'Database Error Bro!', err, error: true })
     
                 var mailOption = {
-                    from: "Toko Berkah <baronhartono@gmail.com>",
+                    from: "Admin Persipura <maxstienhosang@gmail.com>",
                     to: req.body.email,
                     subject: "Email Confirmation",
                     html: `Verified your email by clicking this link  
@@ -86,7 +88,7 @@ module.exports = {
     },
     resendEmailConfirm: (req,res) => {
         var mailOption = {
-            from: "Toko Berkah <baronhartono@gmail.com>",
+            from: "Admin Persipura <maxstienhosang@gmail.com>",
             to: req.body.email,
             subject: "Email Confirmation",
             html: `Verified your email by clicking this link  
@@ -97,6 +99,17 @@ module.exports = {
             if(err) return res.status(500).send({ message: 'Kirim Email Confirmation Gagal!', err })
     
             res.status(200).send({ message: 'Send Email Success', result: results })
+        })
+    } ,getUser: (req,res) => {
+        var sql =`SELECT * FROM users WHERE id=${req.params.id};`;
+    
+        sqlDB.query(sql, (err,results) => {
+            if(err) {
+                // console.log(err)
+                return res.status(500).send(err)
+            }
+    
+            res.status(200).send(results)
         })
     }
 }

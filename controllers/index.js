@@ -1,9 +1,27 @@
 const userController = require('./userController')
-const kotaController = require('./kotaController')
-const tokoController = require('./tokoController')
+const categoryController = require('./categoryController')
+const productController = require('./productController')
+const beritaController = require('./beritaController')
+const galleryFotoController = require('./galleryFotoController')
+const galleryVideoController = require('./galleryVideoController')
+const playerController = require('./playerController')
+const posisiPlayerController=require('./posisiPlayerController')
+const cartController=require('./cartController')
+const matchController=require('./matchController')
+const timController=require('./timController')
+
+
 
 module.exports = {
     userController,
-    kotaController,
-    tokoController
+    categoryController,
+    productController,
+    beritaController,
+    galleryFotoController,
+    galleryVideoController,
+    playerController,
+    posisiPlayerController,
+    cartController,
+    matchController,
+    timController
 }

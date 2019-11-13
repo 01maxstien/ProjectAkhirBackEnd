@@ -3,43 +3,28 @@ const { sqlDB } = require('../database')
 const fs = require('fs')
 
 module.exports = {
-    getToko: (req,res) => {
+    getProduct: (req,res) => {
         var nama = req.query.nama || '';
-        var alamat = req.query.alamat || '';
+        var deskripsi = req.query.deskripsi || '';
         
-        var sql =`SELECT t.*, k.nama as namaKota FROM toko t
-                    JOIN kota k
-                    ON t.kotaId = k.id
-                    WHERE t.nama LIKE '%${nama}%' 
-                    AND alamat LIKE '%${alamat}%'`;
-        
-        if(req.query.incmin) {
-            sql += ` AND totalIncome >= ${req.query.incmin}`
-        }
-        if(req.query.incmax) {
-            sql += ` AND totalIncome <= ${req.query.incmax}`
-        }
-        if(req.query.datefrom) {
-            sql += ` AND tanggalBerdiri >= '${req.query.datefrom}'`
-        }
-        if(req.query.dateto) {
-            sql += ` AND tanggalBerdiri <= '${req.query.dateto}'`
-        }
-        if(req.query.kotaid) {
-            sql += ` AND kotaId = ${req.query.kotaid}`
-        }
+        var sql =`SELECT p.*, c.nama as namaCategory FROM product p
+                  JOIN category c
+                    ON p.categoryId = c.id
+                    WHERE p.nama LIKE '%${nama}%' 
+                    AND deskripsi LIKE '%${deskripsi}%'`;
     
         sqlDB.query(sql, (err,results) => {
+            console.log(results)
             if(err) {
                 // console.log(err)
                 return res.status(500).send(err)
             }
-            
+    
             res.status(200).send(results)
         })
     },
-    getTokoById: (req,res) => {
-        var sql =`SELECT * FROM toko WHERE id=${req.params.id};`;
+    getProductById: (req,res) => {
+        var sql =`SELECT * FROM product WHERE id=${req.params.id};`;
     
         sqlDB.query(sql, (err,results) => {
             if(err) {
@@ -50,13 +35,13 @@ module.exports = {
             res.status(200).send(results)
         })
     },
-    addToko: (req,res) => {
-        var newToko = req.body;
-        console.log(newToko)
-        if(newToko) {
-            var sql = `INSERT INTO toko SET ? `
+    addProduct: (req,res) => {
+        var newProduct = req.body;
+        console.log(newProduct)
+        if(newProduct) {
+            var sql = `INSERT INTO product SET ? `
            
-            sqlDB.query(sql, newToko, (err, results) => {
+            sqlDB.query(sql, newProduct, (err, results) => {
                 if(err) {
                     return res.status(500).send(err)
                 }
@@ -68,8 +53,8 @@ module.exports = {
             res.status(500).send('Tolong kasih Body')
         }
     },
-    deleteToko: (req,res) => {
-        var sql = `DELETE FROM toko WHERE id = ${sqlDB.escape(req.params.id)}`
+    deleteProduct: (req,res) => {
+        var sql = `DELETE FROM product WHERE id = ${sqlDB.escape(req.params.id)}`
            
         sqlDB.query(sql, (err, results) => {
             if(err) {
@@ -79,8 +64,8 @@ module.exports = {
             res.status(200).send(results)
         })
     },
-    editToko: (req,res) => {
-        var sql = `UPDATE toko SET ? WHERE id = ${req.params.id};`;
+    editProduct: (req,res) => {
+        var sql = `UPDATE product SET ? WHERE id = ${req.params.id};`;
         sqlDB.query(sql, req.body, (err,results) => {
             if(err) {
                 return res.status(500).send(err)
@@ -89,9 +74,9 @@ module.exports = {
             res.status(200).send(results)
         })
     },
-    addImageToko: (req,res) => {
-        const path = '/images/toko';
-        const upload = uploader(path, 'TOK').fields([{ name: 'image' }]);
+    addImageProduct: (req,res) => {
+        const path = '/images/product';
+        const upload = uploader(path, 'Product').fields([{ name: 'image' }]);
     
         upload(req, res, (err) => {
             if(err){
@@ -106,10 +91,10 @@ module.exports = {
             console.log(data)
             var insertData = []
             for(var i = 0; i < image.length; i++) {
-                insertData.push([`${path}/${image[i].filename}`, data.tokoId])
+                insertData.push([`${path}/${image[i].filename}`, data.productId])
             }
     
-            var sql = `INSERT INTO imagetoko (pathName,tokoId) VALUES ? `;
+            var sql = `INSERT INTO imageproduct (pathName,productId) VALUES ? `;
             sqlDB.query(sql,[insertData], (err,results) => {
                 if(err) {
                     for(var i = 0; i < image.length; i++) {
@@ -122,11 +107,11 @@ module.exports = {
             })
         })
     },
-    getImageTokoByTokoId: (req,res) => {
-        var sql = `SELECT it.*, t.nama as NamaToko from imagetoko it
-                JOIN toko t
-                ON t.id = it.tokoId
-                WHERE tokoId = ${sqlDB.escape(req.params.id)}`;
+    getImageProductByCategoryId: (req,res) => {
+        var sql = `SELECT ip.*, p.nama as NamaProduct from imageproduct ip
+                JOIN product p
+                ON p.id = ip.productId
+                WHERE productId = ${sqlDB.escape(req.params.id)}`;
         console.log(sql)
         sqlDB.query(sql, (err, results) => {
             if(err) return res.status(500).send(err)
@@ -134,14 +119,14 @@ module.exports = {
             res.status(200).send(results)
         })
     },
-    editImageTokoById: (req,res) => {
-        var sql = `SELECT * FROM imagetoko WHERE id = ${sqlDB.escape(req.params.id)}`;
+    editImageProductById: (req,res) => {
+        var sql = `SELECT * FROM imageproduct WHERE id = ${sqlDB.escape(req.params.id)}`;
         sqlDB.query(sql, (err, results) => {
             if (err) return res.status(500).send(err)
     
             if(results.length > 0) {
-                const path = '/images/toko';
-                const upload = uploader(path, 'TOK').fields([{ name: 'image' }]);
+                const path = '/images/product';
+                const upload = uploader(path, 'Product').fields([{ name: 'image' }]);
     
                 upload(req, res, (err) => {
                     if(err){
@@ -154,7 +139,7 @@ module.exports = {
     
                     const data = { pathName: path + '/' + image[0].filename }
             
-                    sql = `UPDATE imagetoko SET ? WHERE id = ${req.params.id};`
+                    sql = `UPDATE imageproduct SET ? WHERE id = ${req.params.id};`
                     sqlDB.query(sql,data, (err,results1) => {
                         if(err) {
                             fs.unlinkSync('./public' + path + '/' + image[0].filename)
@@ -168,13 +153,13 @@ module.exports = {
             }
         })
     },
-    deleteImageTokoById: (req,res) => {
-        var sql = `SELECT * FROM imagetoko WHERE id = ${sqlDB.escape(req.params.id)}`;
+    deleteImageProductById: (req,res) => {
+        var sql = `SELECT * FROM imageproduct WHERE id = ${sqlDB.escape(req.params.id)}`;
     
         sqlDB.query(sql, (err,results) => {
             if(err) return res.status(500).send(err)
     
-            sql = `DELETE FROM imagetoko WHERE id = ${sqlDB.escape(req.params.id)}`;
+            sql = `DELETE FROM imageproduct WHERE id = ${sqlDB.escape(req.params.id)}`;
             sqlDB.query(sql,(err, results1) => {
                 if(err) return res.status(500).send(err)
     
